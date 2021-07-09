@@ -1,0 +1,125 @@
+组件
+     SqlSessionFactoryBuilder：构造器
+     SqlSessionFactory：工厂接口，由Builder生成
+          基础文件配置，用于配置数据库信息等
+              typeAlias:定义元素别名，代表com.learn.ssm.chapter3.pojo.Role类可以使用自定义别名
+              environment:配置使用数据库的链接信息
+              dataSource:设置mubatis内部提供连接池的方式
+              mapper:引入自定的映射器配置文件
+          映射文件配置，配置结合业务所实现的SQL语句关系
+      SqlSession：会话，发送sql，返回结果
+          核心接口，等同于JDBC里面的Connection链接对象，
+
+      DefaultSqlSession
+           单线程使用
+       SqlSessionManager
+            多线程使用
+    SQL Mapper：映射器，由java和xml文件构成，构造映射规则，发送SQL，执行完后返回结果
+        组成部分
+            java实体对象
+            interface Mapper类
+            xml映射文件
+       select、update、delete、add对应数据库的增删改查语句
+            id：对应interface接口里面的方法名称
+            resultMap：sql语句返回的类型，对应resultMap设置的id名称
+            parameterType：如果sql语句需要单个参数，设置请求参数类型
+            {参数设置}
+            单个参数：SELECT * FROM t_user WHERE id = #{userId} ---对应---selectUserById(@Param("userId") Long userId);
+            多个参数：SELECT * FROM t_user WHERE user_email = #{emailOrPhone} AND user_state = #{state} ---对应---selectUserByPhoneOrEmail(@Param("emailOrPhone") String emailOrPhone, @Param("state") Short state);
+       注解形式实现(此种形式不建议使用)
+              创建新的接口 interface2
+              @select("select *from tb where id=#{id}")
+              配置文件mapper 链接由resource改为class，地址为接口全路径
+生命周期
+       SqlSessionFactoryBuilder用于创建SqlSessionFactory，创建成功后即失效
+       SqlSessionFactory等同于多个数据库的连接池（整个mysql），在整个mybatis的生命周期中，如果创建多个，则会耗光连接池，造成应用崩溃，所以一般为单例模式，整个应用进行共享
+       SqlSession对应单个数据库进行的命令操作，如果使用完，则会把链接返还给SqlSessionFactory连接池
+              Mapper由session创建，一个mapper请求对应一个业务处理
+配置
+     配置文件
+     配置文件节点顺序不能颠倒
+      配置文件xml
+
+      在全局xml使用：<typeHandler jdbcType="数据库类型" javaType="java类型" jandler="handler实现类的包名全路径">
+      在mapper映射xml文件使用：<resule property="java类型" colum="数据库类型" typeHandler="handler实现类的包名全路径">
+      如果自定义处理类过多，使用扫描包形式加载
+           <package name="包的全路径">
+           此种形式无法定义类型映射，可以在自定义实现类class上面使用注解形式添加映射，如：@MappedTypes（String.class） @MappedjdbcTypes（jdbcType.VARCHAR）
+     objectFactory：对象工厂
+            一般使用默认就好，创建结果集时，mybatis会创建结果集的实例，用于返回给用户。
+     plugins：插件
+     environments：运行环境
+用于配置数据库的链接信息
+     transactionManager：事务管理器
+    JdbcTransaction，以jdbc的事务形式进行处理
+    ManagedTransaction，使用mybits自定义的对象事务处理，提交和回滚不进行操作，把事务交给容器处理，默认会关闭链接。
+dataSource
+    分为3种形式链接数据库，可以进行同时配置<dataSource type="POOLED">...
+UNPOOLED
+     使用非连接池形式，每次请求，创建一个新的连接
+POOLED
+     使用连接池形式，节省资源，可以设置最大连接数
+     poolMaxmumActiveConnections：任意时间活跃的链接，默认10
+     poolMaxmumIdleConnections：任意时间空闲的连接数
+     poolMaxmumCheckoutTime：池中检出的时间，默认20000（20秒）
+     poolTimeToWait：如果获取链接时间过长，会打印状态日志
+      poolPingQuery：侦测查询，用于判断数据库是否可以正常查询
+     poolPingEnabled：是否启用侦测查询，默认不开启（如果开启，请设置一个效率非常快的SQL，例如 select 1）
+     poolPingConnectionNotUsedFor：配置侦测查询的频度
+JNDI
+    databaseIdProvider：数据库厂商标识
+    用于配置支持多种数据库操作
+    <databaseIdProvider type="DB_VENDOR"><property name="MYSQL" value="mysql" /><property name="Oracle" value="oracle" /><property name="DB2" value="db2" /></databaseIdProvider >
+    配置完成之后，在Mapper映射器里面 对sql语句进行不同数据的查询切换操作，例如<select id="aa" ... datanaseId="oracle">或者<select id="aa" ... datanaseId="mysql">
+mappers ：对象映射器
+    先编写接口代码，创建对应增删改查接口，映射文件里面首行<mapper>标签会使用namespace定义接口代码全路径，下面设置sql查询语句（select、delete、....）
+   引入方式：
+   文件引入：<mapper resource="xml全路径">
+   包名引入：<package name="包全路径">
+   类注册引入：<mapper class="映射接口类的全路径">
+   userMapper.xml：暂时不考虑
+映射器
+   一个映射xml对应一个接口类型，然后对应对象
+select
+   默认sql返回的列名需要和对象属性一一对应上，例如，role_name对应roleName，按照驼峰命名法则映射，如果列名直接使用role_name as roleName形式返回，则不用使用默认驼峰映射
+xml节点属性配置
+   id：方法名称，供Mybatis使用，如果相同命名空间id不唯一，则会报错
+   parameterTyppe：传递参数类型，可以是int、string、或者类
+   List<map>：接口类使用map，传递查询参数，类似.net的HashTable，不方便阅读维护
+@Param("占位符名称1")：接口类也可以使用多个Param进行传递，xml映射文件可以直接使用变量，例如：<select id="findName" resultType="返回对象类">select id,role_Name as roleName,create_Time as createTime from tb_User where role_Name like concat('%',#{roleName},'%') and id=#{id}</select>，参数过多时不方便使用
+   使用javaBean形式（java class类对象）：传入一个class类型作用请求，paramType="类的全路径"
+   混合使用：javaBean与Param同时使用。@Param("user") User user,@Param("name") Name name，在xml占位符中则为#{user.age}
+   resultType：返回结果类型，可以是int、string、或者类
+   resultMap：返回结果自定义使用，比如说使用typeHandler
+xml：映射配置文件上方 会使用resultMap定义一个数据库查询类型与POJO对象的映射配置节点，下方select查询语句中使用resultMap="上方定义节点的id属性的名称"
+   自定义Handler：
+   flushCache：调用完SQL之后，是否清空查询的本地缓存和二级缓存，默认false，不进行清理
+   useCache：是否启动二级缓存，默认true，启用二级缓存
+   timeout：设置当前语句查询超时时间
+   fetchSize：获取记录返回总条数，如果设定100，最大返回100条数据
+   statementType：设置mybatis使用JDBC的哪种Statement工作，默认PREPARED,（个人不太理解）
+   resultSetType:
+   databaseId：使用多种数据库引擎支持的ID
+   resultOrdered：
+   resultSets：使用于多个结果集情况，一次查询返回多个dataTable表格数据
+   RowBounds：myBatis内置分页类对象。在DAO接口类中，定义RowBounds请求参数，xml不需要进行配置，因为已经内置在sqlSession中。（因为他的原理是先把sql数据全部查出来在内存里面进行分页，大数据量并不合适）
+insert
+xml节点属性配置（大部分同select相同，只记录不同项）
+    useGeneratedKeys：主键回填，是否启用使用jdbc里面的同名方法获取内部生成的主键（类似sqlserver自增主键），默认false（启用之后，keyProperty与keyColumn选一个）。使用方法：<insert ..... useGeneratedKeys="true" keyProperty="id">，意思是-如果插入完数据，则会回填keyProperty设置的属性值
+    keyProperty：会根据useGeneratedKeys的返回值，标记一个属性返回值，默认不启用
+    keyColumn：不能和keyProperty同时使用
+xml节点内部配置：
+    selectKey：自定义主键，可以根据自定义的设置规则，生成主键值，进行回填和插入，例如：下图
+
+     resultMap：描述数据库结果集映射到的对象
+     xml节点
+         resultMap
+         constructor：适用于对象里面带参数的构造函数
+         idArg
+         arg
+         id
+         result
+         association
+         collection
+        discriminator
+        case

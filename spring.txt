@@ -1,0 +1,145 @@
+一、Spring 两大核心
+
+   （1）控制反转（IOC）或依赖注入（DI）
+   （2）面向切面编程（AOP）
+
+ 2.面向切面编程（AOP）
+
+           AOP将哪些与业务无关的，但对多个对象产生一个像的公共行为和逻辑，抽取并封装为一个可重用的模块。这个模块被命名为‘切面’（Aspect）,减少系统中的重复代码，降低了模块间的耦合，同时提高了系统的可维护性。
+      可用于权限认证、日志，事务处理。
+          AOP实现的关键在于 代理模式，AOP代理主要分为静态代理和动态代理。
+          静态代理的代表为AspectJ；动态代理则以Spring AOP为代表。
+
+（1）AspectJ是静态代理的增强，所谓静态代理，就是AOP框架会在编译阶段生成AOP代理类，因此也称为编译时增强，他会在编译阶段将AspectJ(切面)织入到Java字节码中，运行的时候就是增强之后的AOP对象。
+
+（2）Spring AOP使用的动态代理，所谓的动态代理就是说AOP框架不会去修改字节码，而是每次运行时在内存中临时为方法生成一个AOP对象，这个AOP对象包含了目标对象的全部方法，并且在特定的切点做了增强处理，并回调原对象的方法。
+
+Spring AOP中的动态代理主要有两种方式，JDK动态代理和CGLIB动态代理：
+
+        ①JDK动态代理只提供接口的代理，不支持类的代理。核心InvocationHandler接口和Proxy类，InvocationHandler 通过invoke()方法反射来调用目标类中的代码，动态地将横切逻辑和业务编织在一起；接着，Proxy利用 InvocationHandler动态创建一个符合某一接口的的实例,  生成目标类的代理对象。
+
+        ②如果代理类没有实现 InvocationHandler 接口，那么Spring AOP会选择使用CGLIB来动态代理目标类。CGLIB（Code Generation Library），是一个代码生成的类库，可以在运行时动态的生成指定类的一个子类对象，并覆盖其中特定方法并添加增强代码，从而实现AOP。CGLIB是通过继承的方式做的动态代理，因此如果某个类被标记为final，那么它是无法使用CGLIB做动态代理的。
+
+（3）静态代理与动态代理区别在于生成AOP代理对象的时机不同，相对来说AspectJ的静态代理方式具有更好的性能，但是AspectJ需要特定的编译器进行处理，而Spring AOP则无需特定的编译器处理。
+
+ InvocationHandler 的 invoke(Object  proxy,Method  method,Object[] args)：proxy是最终生成的代理实例;  method 是被代理目标实例的某个具体方法;  args 是被代理目标实例某个方法的具体入参, 在方法反射调用时使用。
+
+
+  （2）控制反转（IOC）
+
+          将需要的对象通过注入的方式来实现对象的调用。调用者可以直接使用该对象的方法
+
+          new 一个对象-------------》工厂类------------------》DI
+
+二、Spring的优点
+
+      1）降低了组件之间的耦合性，实现了软件各层之间的解耦
+
+      2）对主流框架提供了集成支持，如hibernate,mabatis，SpringMVC,Struts 等，开发者也可以自由选择             Spring全部或者部分组件
+
+      3）Spring属于低侵入模式，代码污染极低
+
+      4）提供了众多服务支持，如事务管理，消息队列等
+
+三、Spring管理事务的两种方式
+
+              （1）编程式事务          在代码中硬编码
+
+              （2）声明式事务         在配置文件中配置
+
+               声明式事务又分为两种
+
+                           基于XML的声明式事务
+
+                           基于注解的声明式事务
+四、Spring 框架中五种设计模式？
+
+（1）工厂模式：BeanFactory就是简单工厂模式的体现，用来创建对象的实例；
+
+（2）单例模式：Bean默认为单例模式。
+
+（3）代理模式：Spring的AOP功能用到了JDK的动态代理和CGLIB字节码生成技术；
+
+（4）模板方法：用来解决代码重复的问题。比如. RestTemplate, JmsTemplate, JpaTemplate。
+
+（5）观察者模式：定义对象键一种一对多的依赖关系，当一个对象的状态发生改变时，所有依赖于它的对象都会得到通知被制动更新，如Spring中listener的实现--ApplicationListener。
+
+五、Spring bean 的作用域
+
+    Spring容器中的bean可以分为5个范围
+
+       singleton: 范围默认，这种范围不管接受到多少个请求，每个容器中只有一个bean的实例，单利的模式                         由bean factory自身维护
+
+       prototype:  为每一个bean请求提供一个实例
+
+      request :   在请求bean范围内为每一个我来自客户端的网络请求创建一个实例，在请求完成后，bean失效并会被垃圾回收   
+
+      Session;确保每个session中有一个实例，在session过期后，备案会随之失效
+
+      global-session:global-session 和Protlet应用相关。当你的应用部署在Portlet容器中工作时，它包含很多Portlet。如果想要声明让所有的portlet共用全局的存储变量的话，那么全局变量需要存储在global-session中。
+
+六、Spring 中自动装配的方式：
+
+    1.不用装配
+
+    2.Byname
+
+       通过属性得分名字查找java bean 依赖的对象进行注入。
+
+    3.byType 
+
+       通过属性的类型查找javaBean依赖的对象进行注入
+
+    4.construtor  
+
+       和 byType一样，也是通过类型查找并依赖对象。与ByType的区别在于它不是通过Setter方法注入，而是通过构造方法注入
+
+    5.autodetect  
+
+       在 byType和construts之间自动的选择注入方式
+
+    6.default  由上级标签<beans>的default-autowrie属性确定
+
+
+七、Spring事务的实现方式和实现原理：
+
+Spring事务的本质其实就是数据库对事务的支持，没有数据库的事务支持，spring是无法提供事务功能的。真正的数据库层的事务提交和回滚是通过binlog或者redo log实现的。
+
+（1）Spring事务的种类：
+
+spring支持编程式事务管理和声明式事务管理两种方式：
+
+1编程式事务管理使用TransactionTemplate。
+
+2声明式事务管理建立在AOP之上的。
+
+（2）spring的事务传播行为：
+
+spring事务的传播行为说的是，当多个事务同时存在的时候，spring如何处理这些事务的行为。
+
+1 PROPAGATION_REQUIRED：如果当前没有事务，就创建一个新事务，如果当前存在事务，就加入该事务，该设置是最常用的设置。
+
+2 PROPAGATION_SUPPORTS：支持当前事务，如果当前存在事务，就加入该事务，如果当前不存在事务，就以非事务执行。‘
+
+3 PROPAGATION_MANDATORY：支持当前事务，如果当前存在事务，就加入该事务，如果当前不存在事务，就抛出异常。
+
+4 PROPAGATION_REQUIRES_NEW：创建新事务，无论当前存不存在事务，都创建新事务。
+
+5 PROPAGATION_NOT_SUPPORTED：以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
+
+6 PROPAGATION_NEVER：以非事务方式执行，如果当前存在事务，则抛出异常。
+
+7 PROPAGATION_NESTED：如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则按REQUIRED属性执行。
+
+（3）Spring中的隔离级别：
+
+1 ISOLATION_DEFAULT：这是个 PlatfromTransactionManager 默认的隔离级别，使用数据库默认的事务隔离级别。
+
+2 ISOLATION_READ_UNCOMMITTED：读未提交，允许另外一个事务可以看到这个事务未提交的数据。
+
+3 ISOLATION_READ_COMMITTED：读已提交，保证一个事务修改的数据提交后才能被另一事务读取，而且能看到该事务对已有记录的更新。
+
+4 ISOLATION_REPEATABLE_READ：可重复读，保证一个事务修改的数据提交后才能被另一事务读取，但是不能看到该事务对已有记录的更新。
+
+5 ISOLATION_SERIALIZABLE：一个事务在执行的过程中完全看不到其他事务对数据库所做的更新。
+

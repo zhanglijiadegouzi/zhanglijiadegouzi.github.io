@@ -1,0 +1,109 @@
+
+1.spring mvc是靠spring 启动的。
+
+
+2.每个tomcat下的程序war包都有一个web.xml。web.xml可以启动servlet。
+web.xml只能配置servlet相关信息，如servletmapping等等，不能配置bean的注入，扫描包路径，注解驱动等。
+
+3.配置解析
+
+　　1.Dispatcherservlet
+
+　　DispatcherServlet是前置控制器，配置在web.xml文件中的。
+       拦截匹配的请求，Servlet拦截匹配规则要自已定义，把拦截下来的请求，依据相应的规则分发到目标Controller来处理，是配置spring MVC的第一步。
+
+4. <!-- scan the package and the sub package -->
+<context:component-scan base-package="test.SpringMVC"/>
+
+<!-- don't handle the static resource -->
+<mvc:default-servlet-handler />
+
+<!-- if you use annotation you must configure following setting -->
+<mvc:annotation-driven />
+
+<!-- configure the InternalResourceViewResolver -->
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+id="internalResourceViewResolver">
+<!-- 前缀 -->
+<property name="prefix" value="/WEB-INF/jsp/" />
+<!-- 后缀 -->
+<property name="suffix" value=".jsp" />
+</bean>
+</beans>
+
+5.spring mvc配置文件里的配置标签，必背：
+<context:component-scan base-package="test.SpringMVC"/>
+<mvc:annotation-driven />
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+
+<!-- scan the package and the sub package -->
+<context:component-scan base-package="test.SpringMVC"/>
+
+<!-- don't handle the static resource -->
+<mvc:default-servlet-handler />
+
+<!-- if you use annotation you must configure following setting -->
+<mvc:annotation-driven />
+
+<!-- configure the InternalResourceViewResolver -->
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+id="internalResourceViewResolver">
+<!-- 前缀 -->
+<property name="prefix" value="/WEB-INF/jsp/" />
+<!-- 后缀 -->
+<property name="suffix" value=".jsp" />
+</bean>
+</beans>
+
+6.@RequestBody
+
+　　该注解用于读取Request请求的body部分数据，使用系统默认配置的HttpMessageConverter进行解析，然后把相应的数据绑定到要返回的对象上 ,再把HttpMessageConverter返回的对象数据绑定到 controller中方法的参数上
+
+　　@ResponseBody
+
+　　该注解用于将Controller的方法返回的对象，通过适当的HttpMessageConverter转换为指定格式后，写入到Response对象的body数据区
+
+7.spring mvc的那些controller标签，是注入到spring的ioc容器中的。
+
+
+8.requestParam正确用法@RequestParam(value = "invitCode", required = false) string invitCode
+
+
+四、自动匹配参数
+//match automatically
+@RequestMapping("/person")
+public String toPerson(String name,double age){
+System.out.println(name+" "+age);
+return "hello";
+}
+五、自动装箱
+
+　　1.编写一个Person实体类
+package test.SpringMVC.model;
+
+public class Person {
+public String getName() {
+return name;
+}
+public void setName(String name) {
+this.name = name;
+}
+public int getAge() {
+return age;
+}
+public void setAge(int age) {
+this.age = age;
+}
+private String name;
+private int age;
+
+}
+
+2.在Controller里编写方法
+
+//boxing automatically
+@RequestMapping("/person1")
+public String toPerson(Person p){
+System.out.println(p.getName()+" "+p.getAge());
+return "hello";
+}
